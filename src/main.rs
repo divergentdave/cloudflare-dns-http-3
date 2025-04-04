@@ -83,7 +83,8 @@ async fn main() {
     while let Some(mut body_buf) = request_stream.recv_data().await.unwrap() {
         let mut body_vec = vec![0u8; body_buf.remaining()];
         body_buf.copy_to_slice(&mut body_vec);
-        println!("Body: {:02x?}", body_vec);
+        let body_str = String::from_utf8_lossy(&body_vec);
+        println!("Body: {body_str:?} {body_vec:02x?}");
     }
 
     // Clean up the connection.
