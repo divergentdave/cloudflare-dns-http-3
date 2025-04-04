@@ -10,7 +10,7 @@ send a query, including sending a DNS message as a GET query parameter, sending
 a DNS message as a POST request body, or sending a JSON object as a GET query
 parameter. Aside from DoH, DoT is also supported.
 
-[cf-docs]: https://developers.cloudflare.com/1.1.1.1/encryption/dns-over-https/make-api-requests/dns-wireformat/#using-post)
+[cf-docs]: https://developers.cloudflare.com/1.1.1.1/encryption/dns-over-https/make-api-requests/dns-wireformat/#using-post
 
 Hickory DNS developers have noticed that 1.1.1.1 returns 400 Bad Request in
 response to queries sent as a POST request body over HTTP/3, using the `quinn`
