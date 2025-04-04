@@ -22,6 +22,11 @@ successful request. Different error messages are returned when the
 Content-Length header is omitted or GREASE is included. It appears that
 including GREASE results in the HEADERS and DATA HTTP/3 frames being placed in
 separate packets, which may impact how the 1.1.1.1 server handles the request.
+[Other testing][steffengy-comment] has found that Cloudflare servers can handle
+GREASE frames before DATA frames, but cannot handle GREASE frames after DATA
+frames.
+
+[steffengy-comment]: https://github.com/hyperium/h3/issues/206#issuecomment-2617014977
 
 # Rust reproducer
 
