@@ -17,10 +17,16 @@ response to queries sent as a POST request body over HTTP/3, using the `quinn`
 Rust crate. The same problem does not happen when using HTTP/2, or when passing
 the query as a GET query parameter.
 
+Disabling HTTP/3 GREASE and adding a Content-Length header results in a
+successful request. Different error messages are returned when the
+Content-Length header is omitted or GREASE is included. It appears that
+including GREASE results in the HEADERS and DATA HTTP/3 frames being placed in
+separate packets, which may impact how the 1.1.1.1 server handles the request.
+
 # Rust reproducer
 
-The Rust package in this repository builds a single executable that makes a DoH
-request which demonstrates this issue. Support for SSLKEYLOGFILE is included, in
+The Rust package in this repository builds a single executable that makes DoH
+requests that demonstrate this issue. Support for SSLKEYLOGFILE is included, in
 order to inspect packet captures.
 
 ```sh
