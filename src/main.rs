@@ -21,10 +21,21 @@ async fn main() {
         .finish();
     tracing::subscriber::set_global_default(subscriber).unwrap();
 
-    // Configure rustls.
+    // Set up rustls provider.
     rustls::crypto::aws_lc_rs::default_provider()
         .install_default()
         .unwrap();
+
+    run(true, false).await;
+    run(true, true).await;
+    run(false, false).await;
+    run(false, true).await;
+}
+
+async fn run(send_grease: bool, send_content_length: bool) {
+    println!("GREASE: {send_grease}, Content-Length: {send_content_length}");
+
+    // Configure rustls.
     let mut rustls_config = rustls::ClientConfig::builder()
         .with_platform_verifier()
         .with_no_client_auth();
@@ -49,7 +60,7 @@ async fn main() {
         .await
         .unwrap();
     let (mut h3_connection, mut sender) = h3::client::builder()
-        .send_grease(false)
+        .send_grease(send_grease)
         .build::<_, _, &[u8]>(h3_quinn::Connection::new(connection))
         .await
         .unwrap();
@@ -65,13 +76,16 @@ async fn main() {
     });
 
     // Send the request.
-    let request = Request::builder()
+    let mut request_builder = Request::builder()
         .uri("https://cloudflare-dns.com/dns-query")
         .method(Method::POST)
         .header("Content-Type", "application/dns-message")
-        .header("Accept", "application/dns-message")
-        .body(())
-        .unwrap();
+        .header("Accept", "application/dns-message");
+    if send_content_length {
+        request_builder =
+            request_builder.header("Content-Length", format!("{}", QUERY_MESSAGE.len()))
+    }
+    let request = request_builder.body(()).unwrap();
     let mut request_stream = sender.send_request(request).await.unwrap();
     request_stream.send_data(QUERY_MESSAGE).await.unwrap();
     request_stream.finish().await.unwrap();
@@ -90,4 +104,6 @@ async fn main() {
     // Clean up the connection.
     shutdown_tx.send(()).unwrap();
     connection_handle.await.unwrap().unwrap();
+
+    println!();
 }
