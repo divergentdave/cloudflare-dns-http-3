@@ -26,14 +26,12 @@ async fn main() {
         .install_default()
         .unwrap();
 
-    run(true, false).await;
-    run(true, true).await;
-    run(false, false).await;
-    run(false, true).await;
+    run(true).await;
+    run(false).await;
 }
 
-async fn run(send_grease: bool, send_content_length: bool) {
-    println!("GREASE: {send_grease}, Content-Length: {send_content_length}");
+async fn run(send_grease: bool) {
+    println!("GREASE: {send_grease}");
 
     // Configure rustls.
     let mut rustls_config = rustls::ClientConfig::builder()
@@ -76,16 +74,14 @@ async fn run(send_grease: bool, send_content_length: bool) {
     });
 
     // Send the request.
-    let mut request_builder = Request::builder()
+    let request = Request::builder()
         .uri("https://cloudflare-dns.com/dns-query")
         .method(Method::POST)
         .header("Content-Type", "application/dns-message")
-        .header("Accept", "application/dns-message");
-    if send_content_length {
-        request_builder =
-            request_builder.header("Content-Length", format!("{}", QUERY_MESSAGE.len()))
-    }
-    let request = request_builder.body(()).unwrap();
+        .header("Accept", "application/dns-message")
+        .header("Content-Length", format!("{}", QUERY_MESSAGE.len()))
+        .body(())
+        .unwrap();
     let mut request_stream = sender.send_request(request).await.unwrap();
     request_stream.send_data(QUERY_MESSAGE).await.unwrap();
     request_stream.finish().await.unwrap();
